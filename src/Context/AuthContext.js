@@ -1,0 +1,56 @@
+import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const AuthContext = React.createContext();
+
+
+const AuthProvider = ({ children }) => {
+    const [userloggeduid, setUserloggeduid] = useState(null)
+    const [locationName, setLocationName] = useState(null)
+
+
+    const userloggeduidHandler = (userid) => {
+        setUserloggeduid(userid);
+        AsyncStorage.setItem('userloggeduid', userid);
+       
+    }
+
+    const checkIsLogged = async () => {
+
+
+        try {
+            const value = await AsyncStorage.getItem('userloggeduid');
+            if (value !== null) {
+                //console.log('User logged UID retrieved from AsyncStorage:', value);
+                setUserloggeduid(value);
+            } else {
+                console.log('User logged UID not found in AsyncStorage');
+            }
+        } catch (error) {
+            console.log('Error retrieving userloggeduid:', error);
+        }
+
+    };
+    const logout = async () => {
+        try {
+            await AsyncStorage.removeItem('userloggeduid');
+            setUserloggeduid(null);
+            // Additional logout actions can be added here
+        } catch (error) {
+            console.log('Error logging out:', error);
+        }
+    };
+
+    useEffect(() => {
+        checkIsLogged()
+      }, [])
+
+    console.log('From Context (UID)', userloggeduid)
+    const data1 = 'Context Data1'
+    return <AuthContext.Provider value={{ data1, userloggeduid, userloggeduidHandler , checkIsLogged , locationName, setLocationName, logout}}>
+        {children}
+        {/* {!loading && children} */}
+    </AuthContext.Provider>;
+};
+
+export { AuthProvider, AuthContext };
